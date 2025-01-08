@@ -27,12 +27,8 @@ type Player struct {
 	camera          *rl.Camera2D
 	animationPlayer *animation.AnimationPlayer
 
-	currSpriteCol int
-	currSpriteRow int
-
-	position       rl.Vector2
-	movementVector rl.Vector2
-	movementSpeed  float32
+	position      rl.Vector2
+	movementSpeed float32
 
 	currentState state.State
 	states       map[string]state.State
@@ -46,20 +42,19 @@ func NewPlayer(
 		texture: rl.LoadTexture("assets/Characters/BasicCharakterSpritesheet.png"),
 		camera:  camera,
 
-		position:       rl.Vector2{X: posX, Y: posY},
-		movementVector: rl.Vector2{X: 0, Y: 0},
-		movementSpeed:  3,
+		position:      rl.Vector2{X: posX, Y: posY},
+		movementSpeed: 3,
 	}
 
 	player.animationPlayer = animation.NewPlayerAnimationPlayer(player)
 
 	idleState := &PlayerIdleState{
 		player: player,
+		facing: rl.NewVector2(0, 1),
 	}
 	walkingState := &PlayerWalkingState{
-		player: player,
-		dx:     0,
-		dy:     0,
+		player:   player,
+		direction: rl.NewVector2(0, 0),
 	}
 
 	player.states = map[string]state.State{

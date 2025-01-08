@@ -11,10 +11,6 @@ type AnimationPlayer struct {
 	Animations       map[string]*Animation
 }
 
-func New() *AnimationPlayer {
-	return &AnimationPlayer{}
-}
-
 func (ap *AnimationPlayer) Render(delta float32, position rl.Vector2) {
 	currAnimation := ap.CurrentAnimation
 

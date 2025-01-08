@@ -4,23 +4,38 @@ import (
 	"anicrossing/src/animation"
 	"anicrossing/src/inputs"
 	"anicrossing/src/state"
-	"fmt"
 
-	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/gen2brain/raylib-go/raylib"
 )
 
 type PlayerIdleState struct {
-	player  *Player
-	facingX int
-	facingY int
+	player *Player
+	facing rl.Vector2
 }
 
 func (idle *PlayerIdleState) Enter() {
-	fmt.Println("enter idle")
+	var idleAnimation string
+
+	if idle.facing.Y != 0 {
+		if idle.facing.Y > 0 {
+			idleAnimation = animation.PlayerIdleDownAnimation
+		} else {
+			idleAnimation = animation.PlayerIdleUpAnimation
+		}
+	} else {
+		if idle.facing.X < 0 {
+			idleAnimation = animation.PlayerIdleLeftAnimation
+		} else {
+			idleAnimation = animation.PlayerIdleRightAnimation
+		}
+	}
+
+	idle.player.animationPlayer.SetAnimation(idleAnimation)
 }
 
 func (idle *PlayerIdleState) Exit() {
-	fmt.Println("exit idle")
+	idle.facing.X = 0
+	idle.facing.Y = 0
 }
 
 func (idle *PlayerIdleState) HandleInput(inputs *inputs.Inputs) state.State {
@@ -35,72 +50,75 @@ func (idle *PlayerIdleState) Update() {
 }
 
 type PlayerWalkingState struct {
-	player *Player
-	dx     float32
-	dy     float32
+	player    *Player
+	direction rl.Vector2
 }
 
 func (walking *PlayerWalkingState) Enter() {
-	var walkingAnimation string
-
-	if walking.dy != 0 {
-		if walking.dy > 0 {
-			walkingAnimation = animation.PlayerWalkingUpAnimation
-		} else {
-			walkingAnimation = animation.PlayerWalkingDownAnimation
-		}
-	} else {
-		if walking.dx > 0 {
-			walkingAnimation = animation.PlayerWalkingRightAnimation
-		} else {
-			walkingAnimation = animation.PlayerWalkingLeftAnimation
-		}
-	}
-
-	walking.player.animationPlayer.SetAnimation(walkingAnimation)
 }
 
 func (walking *PlayerWalkingState) Exit() {
-	fmt.Println("exit walking")
+	walking.direction.X = 0
+	walking.direction.Y = 0
 }
 
 func (walking *PlayerWalkingState) HandleInput(inputs *inputs.Inputs) state.State {
-	if !inputs.DirectionPressed() {
+	var X, Y float32 = 0, 0
+	if inputs.PressedRight {
+		X++
+	}
+	if inputs.PressedLeft {
+		X--
+	}
+	if inputs.PressedUp {
+		Y--
+	}
+	if inputs.PressedDown {
+		Y++
+	}
+
+	if X == 0 && Y == 0 {
 		idleState, ok := walking.player.states[idle].(*PlayerIdleState)
 		if !ok {
 			panic("idle state set wrongly")
 		}
-		idleState.facingX = int(walking.dx)
-		idleState.facingY = int(walking.dy)
+		//set idle facing to last movement direction
+		idleState.facing.X = walking.direction.X
+		idleState.facing.Y = walking.direction.Y
 
 		return idleState
 	}
 
-	walking.dx = 0
-	walking.dy = 0
+	if X != walking.direction.X || Y != walking.direction.Y {
+		//update animation
+		var walkingAnimation string
 
-	if inputs.PressedRight {
-		walking.dx++
+		if Y != 0 {
+			if Y > 0 {
+				walkingAnimation = animation.PlayerWalkingDownAnimation
+			} else {
+				walkingAnimation = animation.PlayerWalkingUpAnimation
+			}
+		} else {
+			if X > 0 {
+				walkingAnimation = animation.PlayerWalkingRightAnimation
+			} else {
+				walkingAnimation = animation.PlayerWalkingLeftAnimation
+			}
+		}
+
+		walking.player.animationPlayer.SetAnimation(walkingAnimation)
 	}
-	if inputs.PressedLeft {
-		walking.dx--
-	}
-	if inputs.PressedUp {
-		walking.dy--
-	}
-	if inputs.PressedDown {
-		walking.dy++
-	}
+
+	walking.direction.X = X
+	walking.direction.Y = Y
 
 	return nil
 }
 
 func (walking *PlayerWalkingState) Update() {
-	walking.player.movementVector.X = walking.dx
-	walking.player.movementVector.Y = walking.dy
+	walking.direction = rl.Vector2Normalize(walking.direction)
 
-	walking.player.movementVector = rl.Vector2Normalize(walking.player.movementVector)
-
-	walking.player.position.X += walking.player.movementVector.X * walking.player.movementSpeed
-	walking.player.position.Y += walking.player.movementVector.Y * walking.player.movementSpeed
+	walking.player.position.X += walking.direction.X * walking.player.movementSpeed
+	walking.player.position.Y += walking.direction.Y * walking.player.movementSpeed
 }
