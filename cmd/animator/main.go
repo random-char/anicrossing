@@ -17,7 +17,7 @@ func main() {
 		0.0,
 		1.0,
 	)
-	player := character.NewPlayer(100, 100, &camera)
+	player := character.NewCharacter(100, 100, &camera)
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()

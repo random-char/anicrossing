@@ -6,15 +6,29 @@ import (
 	"github.com/gen2brain/raylib-go/raylib"
 )
 
+type Animated interface {
+	GetAnimationPlayer() *AnimationPlayer
+}
+
 type AnimationPlayer struct {
 	CurrentAnimation *Animation
 	Animations       map[string]*Animation
 }
 
+func NewAnimationPlayer(
+	CurrentAnimation *Animation,
+	Animations map[string]*Animation,
+) *AnimationPlayer {
+	return &AnimationPlayer{
+		CurrentAnimation: CurrentAnimation,
+		Animations:       Animations,
+	}
+}
+
 func (ap *AnimationPlayer) Render(delta float32, position rl.Vector2) {
 	currAnimation := ap.CurrentAnimation
 
-	currAnimation.Cycle(delta)
+	currAnimation.cycle(delta)
 
 	rl.DrawTextureRec(
 		*currAnimation.Frames[currAnimation.CurrentFrame].Texture,

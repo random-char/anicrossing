@@ -1,5 +1,6 @@
 package animation
 
+
 type Animation struct {
 	Period       float32
 	TimeElapsed  float32
@@ -15,7 +16,7 @@ func (a *Animation) Update(delta float32) {
 	}
 }
 
-func (a *Animation) Cycle(delta float32) {
+func (a *Animation) cycle(delta float32) {
 	a.TimeElapsed += delta
 	if a.TimeElapsed >= a.Period {
 		//instead of %
