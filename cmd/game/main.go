@@ -3,6 +3,7 @@ package main
 import (
 	"anicrossing/src/character"
 	"anicrossing/src/inputs"
+	"anicrossing/src/player"
 	"anicrossing/src/tiles"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -14,35 +15,35 @@ const (
 )
 
 var (
-	running = true
 	bgColor = rl.NewColor(147, 211, 196, 255)
 
 	grassSpritesheet rl.Texture2D
+	grassTileMap     *tiles.TileMap
 
 	bgMusic rl.Music
 
-	player *character.Character
-	camera rl.Camera2D
+	characterInstance *character.Character
+	camera            rl.Camera2D
+	playerInstance    *player.Player
+	playerInputs      *inputs.Inputs = &inputs.Inputs{
+		PressedUp:    false,
+		PressedDown:  false,
+		PressedLeft:  false,
+		PressedRight: false,
+		PressedFire:  false,
+	}
 )
 
 func main() {
 	setup()
 
-	for running {
+	for !rl.WindowShouldClose() {
 		input()
 		update()
 		render()
 	}
 
 	quit()
-}
-
-var playerInputs = &inputs.Inputs{
-	PressedUp:    false,
-	PressedDown:  false,
-	PressedLeft:  false,
-	PressedRight: false,
-	PressedFire:  false,
 }
 
 func input() {
@@ -52,7 +53,7 @@ func input() {
 	playerInputs.PressedRight = rl.IsKeyDown(rl.KeyD)
 	playerInputs.PressedFire = rl.IsKeyDown(rl.KeySpace)
 
-	player.HandleInput(playerInputs)
+	characterInstance.HandleInput(playerInputs)
 }
 
 func render() {
@@ -60,25 +61,57 @@ func render() {
 	rl.ClearBackground(bgColor)
 	rl.BeginMode2D(camera)
 
-	// rl.DrawTexture(grassSpritesheet, 100, 100, color.RGBA{R: 255, G: 255, B: 255, A: 255})
-	grassTileMap.Draw(
-		tiles.TileGrassTopLeft,
-		0,
-		0,
-	)
-	grassTileMap.Draw(
-		tiles.TileGrassTopCenter,
-		16,
-		0,
-	)
-	grassTileMap.Draw(
-		tiles.TileGrassTopCenter,
-		32,
-		0,
-	)
+	renderBackgroundStub()
+	characterInstance.Render(rl.GetFrameTime())
 
+	rl.EndMode2D()
+	rl.EndDrawing()
+}
+
+func update() {
+	rl.UpdateMusicStream(bgMusic)
+
+	characterInstance.Update()
+}
+
+func setup() {
+	rl.InitWindow(screenWidth, screenHeight, "Anicrossing")
+
+	rl.SetTargetFPS(60)
+
+	camera = rl.NewCamera2D(
+		rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
+		rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
+		0.0,
+		1.0,
+	)
+	characterInstance = character.NewCharacter(
+		screenWidth/2,
+		screenHeight/2,
+		&camera,
+	)
+	playerInstance = player.NewPlayer(&camera, characterInstance)
+
+	grassTileMap = tiles.LoadGrassTileMap()
+
+	rl.InitAudioDevice()
+	bgMusic = rl.LoadMusicStream("assets/Sound/Music/AveryFarm.mp3")
+
+	rl.PlayMusicStream(bgMusic)
+}
+
+func quit() {
+	characterInstance.Teardown()
+
+	rl.UnloadTexture(grassSpritesheet)
+	rl.UnloadMusicStream(bgMusic)
+
+	rl.CloseAudioDevice()
+	rl.CloseWindow()
+}
+
+func renderBackgroundStub() {
 	var tile int
-
 	for row := 0; row < 20; row++ {
 		for col := 0; col < 20; col++ {
 			if row == 0 {
@@ -114,54 +147,4 @@ func render() {
 			)
 		}
 	}
-
-	player.Render(rl.GetFrameTime())
-
-	rl.EndMode2D()
-	rl.EndDrawing()
-}
-
-func update() {
-	running = !rl.WindowShouldClose()
-
-	rl.UpdateMusicStream(bgMusic)
-
-    player.Update()
-}
-
-var grassTileMap *tiles.TileMap
-
-func setup() {
-	rl.InitWindow(screenWidth, screenHeight, "Anicrossing")
-
-	rl.SetTargetFPS(60)
-
-	camera = rl.NewCamera2D(
-		rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
-		rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
-		0.0,
-		1.0,
-	)
-	player = character.NewCharacter(
-		screenWidth/2,
-		screenHeight/2,
-		&camera,
-	)
-
-	grassTileMap = tiles.LoadGrassTileMap()
-
-	rl.InitAudioDevice()
-	bgMusic = rl.LoadMusicStream("assets/Sound/Music/AveryFarm.mp3")
-	rl.PlayMusicStream(bgMusic)
-}
-
-func quit() {
-	player.Teardown()
-
-	rl.UnloadTexture(grassSpritesheet)
-
-	rl.UnloadMusicStream(bgMusic)
-	rl.CloseAudioDevice()
-
-	rl.CloseWindow()
 }

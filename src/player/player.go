@@ -10,3 +10,13 @@ type Player struct {
 	camera    *rl.Camera2D
 	character *character.Character
 }
+
+func NewPlayer(
+	camera *rl.Camera2D,
+	character *character.Character,
+) *Player {
+	return &Player{
+		camera:    camera,
+		character: character,
+	}
+}
