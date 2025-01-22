@@ -1,19 +1,12 @@
 package state
 
 import (
-	"anicrossing/src/animation"
 	character_animation "anicrossing/src/animation/character"
 	"anicrossing/src/inputs"
 	"anicrossing/src/state"
 
-	"github.com/gen2brain/raylib-go/raylib"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
-
-type StatefulAndAnimatedMovingCharacter interface {
-	state.Stateful
-	animation.Animated
-	Move(rl.Vector2)
-}
 
 type CharacterWalkingState struct {
 	character StatefulAndAnimatedMovingCharacter
@@ -53,7 +46,7 @@ func (walking *CharacterWalkingState) HandleInput(inputs *inputs.Inputs) state.S
 	}
 
 	if X == 0 && Y == 0 {
-		state := walking.character.GetStates()[Idle]
+		state := walking.character.GetState(Idle)
 		switch idleState := state.(type) {
 		case *CharacterIdleState:
 			//set idle facing to last movement direction
@@ -92,6 +85,5 @@ func (walking *CharacterWalkingState) HandleInput(inputs *inputs.Inputs) state.S
 }
 
 func (walking *CharacterWalkingState) Update() {
-
 	walking.character.Move(rl.Vector2Normalize(walking.direction))
 }

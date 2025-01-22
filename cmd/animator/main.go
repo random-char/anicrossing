@@ -2,22 +2,23 @@ package main
 
 import (
 	"anicrossing/src/character"
+	"anicrossing/src/config"
 
 	"github.com/gen2brain/raylib-go/raylib"
 )
 
 func main() {
+	conf := config.LoadConfig()
 
-	rl.InitWindow(1000, 500, "map editor")
+	rl.InitWindow(
+		int32(conf.ScreenResolution.X),
+		int32(conf.ScreenResolution.Y),
+		"map editor",
+	)
 	rl.SetTargetFPS(60)
 
-	camera := rl.NewCamera2D(
-		rl.NewVector2(500, 250),
-		rl.NewVector2(500, 250),
-		0.0,
-		1.0,
-	)
-	player := character.NewCharacter(100, 100, &camera)
+	screenCenter := rl.NewVector2((conf.ScreenResolution.X / 2), (conf.ScreenResolution.Y / 2))
+	player := character.New(screenCenter)
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()

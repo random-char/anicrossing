@@ -2,6 +2,7 @@ package main
 
 import (
 	"anicrossing/src/character"
+	"anicrossing/src/config"
 	"anicrossing/src/inputs"
 	"anicrossing/src/player"
 	"anicrossing/src/tiles"
@@ -9,12 +10,9 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-const (
-	screenWidth  = 1000
-	screenHeight = 500
-)
-
 var (
+	conf *config.Config
+
 	bgColor = rl.NewColor(147, 211, 196, 255)
 
 	grassSpritesheet rl.Texture2D
@@ -53,7 +51,7 @@ func input() {
 	playerInputs.PressedRight = rl.IsKeyDown(rl.KeyD)
 	playerInputs.PressedFire = rl.IsKeyDown(rl.KeySpace)
 
-	characterInstance.HandleInput(playerInputs)
+	playerInstance.HandleInput(playerInputs)
 }
 
 func render() {
@@ -62,7 +60,9 @@ func render() {
 	rl.BeginMode2D(camera)
 
 	renderBackgroundStub()
-	characterInstance.Render(rl.GetFrameTime())
+	characterInstance.Render(
+		rl.GetFrameTime(),
+	)
 
 	rl.EndMode2D()
 	rl.EndDrawing()
@@ -71,26 +71,31 @@ func render() {
 func update() {
 	rl.UpdateMusicStream(bgMusic)
 
-	characterInstance.Update()
+	playerInstance.Update()
 }
 
 func setup() {
-	rl.InitWindow(screenWidth, screenHeight, "Anicrossing")
+	conf = config.LoadConfig()
 
+	rl.InitWindow(
+		int32(conf.ScreenResolution.X),
+		int32(conf.ScreenResolution.Y),
+		"Anicrossing",
+	)
 	rl.SetTargetFPS(60)
 
+	screenCenter := rl.NewVector2((conf.ScreenResolution.X / 2), (conf.ScreenResolution.Y / 2))
 	camera = rl.NewCamera2D(
-		rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
-		rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
+		screenCenter,
+		screenCenter,
 		0.0,
 		1.0,
 	)
-	characterInstance = character.NewCharacter(
-		screenWidth/2,
-		screenHeight/2,
+	characterInstance = character.New(screenCenter)
+	playerInstance = player.New(
 		&camera,
+		characterInstance,
 	)
-	playerInstance = player.NewPlayer(&camera, characterInstance)
 
 	grassTileMap = tiles.LoadGrassTileMap()
 
@@ -101,7 +106,7 @@ func setup() {
 }
 
 func quit() {
-	characterInstance.Teardown()
+	playerInstance.Teardown()
 
 	rl.UnloadTexture(grassSpritesheet)
 	rl.UnloadMusicStream(bgMusic)

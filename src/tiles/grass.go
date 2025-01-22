@@ -14,13 +14,17 @@ const (
 	TileGrassBottomRight  = 24
 )
 
+var TileNames map[int]string = map[int]string{
+	TileGrassTopLeft: "grass-top-left",
+}
+
 func LoadGrassTileMap() *TileMap {
 	tileMap := &TileMap{
-		Texture: rl.LoadTexture("assets/Tilesets/Grass.png"),
-		TileWidth:   16,
-		TileHeight:  16,
-        Columns: 11,
-        Rows: 7,
+		Texture:    rl.LoadTexture("assets/Tilesets/Grass.png"),
+		TileWidth:  16,
+		TileHeight: 16,
+		Columns:    11,
+		Rows:       7,
 	}
 
 	tiles := make([]*Tile, 77)

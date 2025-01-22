@@ -15,7 +15,6 @@ type Character struct {
 	spriteWidth  int
 	spriteHeight int
 
-	camera          *rl.Camera2D
 	animationPlayer *animation.AnimationPlayer
 
 	position      rl.Vector2
@@ -24,69 +23,65 @@ type Character struct {
 	state.StateMachine
 }
 
-func NewCharacter(
-	posX, posY float32,
-	camera *rl.Camera2D,
+func New(
+	position rl.Vector2,
 ) *Character {
-	player := &Character{
+	character := &Character{
 		texture:      rl.LoadTexture("assets/Characters/BasicCharakterSpritesheet.png"),
 		spriteWidth:  48,
 		spriteHeight: 48,
 
-		camera: camera,
-
-		position:      rl.Vector2{X: posX, Y: posY},
-		movementSpeed: 3,
+		position: position,
+        movementSpeed: 3,
 	}
 
-	player.animationPlayer = character_animation.NewCharacterAnimationPlayer(player)
+	character.animationPlayer = character_animation.NewCharacterAnimationPlayer(character)
 
-	idleState := character_state.NewCharacterIdleState(player, rl.NewVector2(0, 1))
-	walkingState := character_state.NewCharacterWalkingState(player, rl.NewVector2(0, 0))
+	idleState := character_state.NewCharacterIdleState(character, rl.NewVector2(0, 1))
+	walkingState := character_state.NewCharacterWalkingState(character, rl.NewVector2(0, 0))
 
-	player.SetStates(map[string]state.State{
+	character.SetStates(map[string]state.State{
 		character_state.Idle:    idleState,
 		character_state.Walking: walkingState,
 	})
 
-	player.EnterState(idleState)
+	character.EnterState(idleState)
 
-	return player
+	return character
 }
 
-func (p *Character) Render(delta float32) {
-	p.animationPlayer.Render(delta, p.position)
+func (c *Character) GetPosition() rl.Vector2 {
+	return c.position
 }
 
-func (p *Character) Update() {
-	p.camera.Target = rl.NewVector2(
-		float32(p.position.X),
-		float32(p.position.Y),
-	)
+func (c *Character) Render(delta float32) {
+	c.animationPlayer.Render(delta, c.position)
+}
 
-	if p.GetCurrentState() == nil {
+func (c *Character) Update() {
+	if c.GetCurrentState() == nil {
 		return
 	}
 
-	p.GetCurrentState().Update()
+	c.GetCurrentState().Update()
 }
 
-func (p *Character) HandleInput(inputs *inputs.Inputs) {
-	if p.GetCurrentState() == nil {
+func (c *Character) HandleInput(inputs *inputs.Inputs) {
+	if c.GetCurrentState() == nil {
 		return
 	}
 
-	nextState := p.GetCurrentState().HandleInput(inputs)
+	nextState := c.GetCurrentState().HandleInput(inputs)
 	if nextState != nil {
-		p.EnterState(nextState)
+		c.EnterState(nextState)
 	}
 }
 
-func (p *Character) Move(direction rl.Vector2) {
-	p.position.X += direction.X * p.movementSpeed
-	p.position.Y += direction.Y * p.movementSpeed
+func (c *Character) Move(direction rl.Vector2) {
+	c.position.X += direction.X * c.movementSpeed
+	c.position.Y += direction.Y * c.movementSpeed
 }
 
-func (p *Character) Teardown() {
-	rl.UnloadTexture(p.texture)
+func (c *Character) Teardown() {
+	rl.UnloadTexture(c.texture)
 }

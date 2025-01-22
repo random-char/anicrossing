@@ -1,18 +1,12 @@
 package state
 
 import (
-	"anicrossing/src/animation"
 	character_animation "anicrossing/src/animation/character"
 	"anicrossing/src/inputs"
 	"anicrossing/src/state"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
-
-type StatefulAndAnimatedCharacter interface {
-	state.Stateful
-	animation.Animated
-}
 
 type CharacterIdleState struct {
 	character StatefulAndAnimatedCharacter
@@ -51,7 +45,7 @@ func (idle *CharacterIdleState) Enter() {
 
 func (idle *CharacterIdleState) HandleInput(inputs *inputs.Inputs) state.State {
 	if inputs.DirectionPressed() {
-		return idle.character.GetStates()[Walking]
+		return idle.character.GetState(Walking)
 	}
 
 	return nil
